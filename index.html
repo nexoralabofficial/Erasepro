@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Free Background Remover</title>
+  <style>
+    /* Modernized color palette */
+    :root {
+      --primary: #3b82f6; /* Softer blue */
+      --accent: #7c3aed; /* Vibrant purple */
+      --bg: #f8fafc; /* Light gray background */
+      --text: #1e293b; /* Dark slate text */
+      --secondary: #e2e8f0; /* Light secondary background */
+      --card: rgba(255, 255, 255, 0.85); /* Slightly translucent card */
+      --shadow: rgba(0, 0, 0, 0.15); /* Softer shadow */
+      --border: #e5e7eb; /* Light border color */
+    }
+
+    body.dark {
+      --bg: #0f172a; /* Dark slate background */
+      --text: #f1f5f9; /* Light text */
+      --secondary: #1e293b; /* Darker secondary */
+      --card: rgba(30, 41, 59, 0.7); /* Dark translucent card */
+      --shadow: rgba(0, 0, 0, 0.4);
+      --border: #374151; /* Dark border */
+    }
+
+    /* Global styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden; /* Prevent horizontal scroll */
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      box-shadow: 0 4px 12px var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      max-width: 100%;
+    }
+
+    .hero h1 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      margin-bottom: 1.25rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .upload-zone {
+      border: 2px dashed var(--primary);
+      padding: 2rem;
+      margin: 2rem auto;
+      width: 90%;
+      max-width: 400px; /* Reduced for better mobile fit */
+      border-radius: 12px;
+      cursor: pointer;
+      background: var(--card);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 6px 16px var(--shadow);
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+
+    .upload-zone:hover,
+    .upload-zone.dragover {
+      background: rgba(59, 130, 246, 0.1);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px var(--shadow);
+    }
+
+    .upload-zone p {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    /* Result Section */
+    .result {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      display: none;
+      background: var(--secondary);
+      border-radius: 12px;
+      margin: 1rem;
+    }
+
+    .result h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+
+    .result .images {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.5rem;
+    }
+
+    .result img {
+      max-width: 100%;
+      width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 6px 16px var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .result h4 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .download-options {
+      margin-top: 1.5rem;
+    }
+
+    .download-options button {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      border: none;
+      padding: 0.75rem 1.75rem;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 0.5rem;
+    }
+
+    .download-options button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px var(--shadow);
+      filter: brightness(1.1);
+    }
+
+    /* Workflow Section */
+    #workflow {
+      text-align: center;
+      padding: 2.5rem 1rem;
+    }
+
+    #workflow h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+
+    #workflow .steps {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    #workflow .steps div {
+      background: var(--card);
+      padding: 1.25rem;
+      border-radius: 12px;
+      box-shadow: 0 6px 16px var(--shadow);
+      flex: 1;
+      min-width: 200px;
+      max-width: 300px;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: transform 0.3s ease;
+    }
+
+    #workflow .steps div:hover {
+      transform: translateY(-4px);
+    }
+
+    /* Ad Container */
+    .ad-container {
+      margin: 2rem auto;
+      max-width: 100%; /* Ensure it fits viewport */
+      overflow: hidden; /* Prevent ad overflow */
+      text-align: center;
+      padding: 0 1rem;
+    }
+
+    /* Benefits Section */
+    #benefits {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      background: var(--secondary);
+      border-radius: 12px;
+      margin: 1rem;
+    }
+
+    #benefits h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    #benefits p {
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Footer */
+    footer {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 1rem;
+      margin-top: auto; /* Push footer to bottom */
+      box-shadow: 0 -4px 12px var(--shadow);
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 1.75rem;
+      }
+
+      .upload-zone {
+        padding: 1.5rem;
+        width: 95%;
+        max-width: 350px;
+      }
+
+      .result .images {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      #workflow .steps {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      #workflow .steps div {
+        min-width: 100%;
+        max-width: 100%;
+      }
+
+      .download-options button {
+        width: 100%;
+        padding: 0.75rem;
+      }
+
+      header, footer {
+        font-size: 1.25rem;
+        padding: 1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 {
+        font-size: 1.5rem;
+      }
+
+      .upload-zone {
+        padding: 1rem;
+      }
+
+      .result h2,
+      #workflow h2,
+      #benefits h2 {
+        font-size: 1.5rem;
+      }
+
+      .result img {
+        max-height: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>Free Background Remover</header>
+
+  <!-- Social Bar -->
+  <script type='text/javascript' src='//pl27656636.revenuecpmgate.com/1a/7e/7a/1a7e7a4ac62775747c4dfa132c08d39f.js'></script>
+
+  <!-- Hero -->
+  <section class="hero">
+    <h1>Remove Background in One Click</h1>
+    <div class="upload-zone" id="uploadZone">
+      <p>Click or Drag & Drop Image</p>
+      <input type="file" id="fileInput" accept="image/*" hidden />
+    </div>
+  </section>
+
+  <!-- Result Section -->
+  <section class="result" id="result">
+    <h2>Your Result</h2>
+    <div class="images">
+      <div>
+        <h4>Original</h4>
+        <img id="originalImg" />
+      </div>
+      <div>
+        <h4>Background Removed</h4>
+        <img id="processedImg" />
+      </div>
+    </div>
+
+    <!-- Download Buttons with Smart Link -->
+    <div class="download-options">
+      <button onclick="window.open('https://www.revenuecpmgate.com/jc0kyerjyu?key=798557bf6f8c014cbf36ffbde1f7e06f','_blank')">
+        Download PNG
+      </button>
+      <button onclick="window.open('https://www.revenuecpmgate.com/jc0kyerjyu?key=798557bf6f8c014cbf36ffbde1f7e06f','_blank')">
+        Download JPG
+      </button>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section id="workflow">
+    <h2>How It Works</h2>
+    <div class="steps">
+      <div>1. Upload an image</div>
+      <div>2. Background will be automatically removed</div>
+      <div>3. Download the new image</div>
+    </div>
+  </section>
+
+  <!-- Native Banner Ad -->
+  <div class="ad-container">
+    <script async="async" data-cfasync="false" src="//pl27656622.revenuecpmgate.com/b1375d3f796b2698f32b01e0ec9ea1c4/invoke.js"></script>
+    <div id="container-b1375d3f796b2698f32b01e0ec9ea1c4"></div>
+  </div>
+
+  <!-- Key Benefits Section -->
+  <section id="benefits">
+    <h2>Why Choose Us?</h2>
+    <p>Fast, Free, High Quality background removal service.</p>
+  </section>
+
+  <footer>
+    <p>© 2025 Background Remover | All Rights Reserved</p>
+  </footer>
+
+  <script>
+    const uploadZone = document.getElementById("uploadZone");
+    const fileInput = document.getElementById("fileInput");
+    const resultSection = document.getElementById("result");
+    const originalImg = document.getElementById("originalImg");
+    const processedImg = document.getElementById("processedImg");
+    let processedBlob;
+
+    uploadZone.addEventListener("click", () => fileInput.click());
+    uploadZone.addEventListener("dragover", e => {
+      e.preventDefault();
+      uploadZone.classList.add("dragover");
+    });
+    uploadZone.addEventListener("dragleave", () => {
+      uploadZone.classList.remove("dragover");
+    });
+    uploadZone.addEventListener("drop", e => {
+      e.preventDefault();
+      uploadZone.classList.remove("dragover");
+      handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener("change", () => {
+      if (fileInput.files.length) handleFile(fileInput.files[0]);
+    });
+
+    async function handleFile(file) {
+      if (!file) return;
+      originalImg.src = URL.createObjectURL(file);
+      resultSection.style.display = "block";
+      processedImg.alt = "Processing...";
+      processedImg.src = "";
+
+      const formData = new FormData();
+      formData.append("image_file", file);
+
+      try {
+        const res = await fetch("https://api.remove.bg/v1.0/removebg", {
+          method: "POST",
+          headers: { "X-Api-Key": "bS4QmFkJKoRM736N9dMxYUsa" },
+          body: formData,
+        });
+
+        if (!res.ok) throw new Error("Failed to process image");
+        processedBlob = await res.blob();
+        processedImg.src = URL.createObjectURL(processedBlob);
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    }
+  </script>
+</body>
+</html>
